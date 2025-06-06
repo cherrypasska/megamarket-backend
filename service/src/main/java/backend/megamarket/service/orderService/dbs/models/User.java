@@ -1,7 +1,7 @@
-package backend.megamarket.service.orderService.db.models;
+package backend.megamarket.service.orderService.dbs.models;
 
 
-import backend.megamarket.service.orderService.db.models.enums.Role;
+import backend.megamarket.service.orderService.dbs.models.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;

@@ -1,5 +1,6 @@
-package backend.megamarket.service.orderService.db.dto;
+package backend.megamarket.service.orderService.dbs.dao;
 
+import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
