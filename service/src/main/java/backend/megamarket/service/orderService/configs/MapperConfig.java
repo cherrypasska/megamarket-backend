@@ -1,4 +1,4 @@
-package backend.megamarket.service.orderService.config;
+package backend.megamarket.service.orderService.configs;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;

@@ -1,13 +1,12 @@
 package backend.megamarket.inventoryService.service.config;
 
 import backend.megamarket.inventoryService.service.InventoryServise;
-import backend.megamarket.inventoryService.service.db.dao.ProductRepository;
+import backend.megamarket.inventoryService.service.dto.dao.ProductRepository;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.PostMapping;
 
 import java.io.IOException;
 

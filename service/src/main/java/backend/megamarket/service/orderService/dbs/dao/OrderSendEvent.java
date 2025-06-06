@@ -1,6 +1,5 @@
-package backend.megamarket.service.orderService.dbs.dao;
+package backend.megamarket.service.orderService.db.dto;
 
-import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class OrderSendEvent {
+    private Long userId;
     private Long productId;
     private Long quantity;
     private Double price;

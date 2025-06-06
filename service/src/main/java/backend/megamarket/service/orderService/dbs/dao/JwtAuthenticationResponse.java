@@ -1,4 +1,4 @@
-package backend.megamarket.service.orderService.dbs.dao;
+package backend.megamarket.service.orderService.db.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

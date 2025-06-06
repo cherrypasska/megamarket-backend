@@ -1,16 +1,19 @@
-package backend.megamarket.service.orderService.dbs.dao;
+package backend.megamarket.service.orderService.db.dto;
 
 import lombok.Data;
 
 import java.util.List;
 
+@Data
 public class InventoryResponseDTO {
     private List<ProductDTO> items;
 
     @Data
     public static class ProductDTO {
-        private long productId;
-        private int quantity;
-        private String status;
+        private Long productId;
+        private String name;
+        private Double price;
+        private Double discount;
+        private Long quantity;
     }
 }

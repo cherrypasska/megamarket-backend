@@ -1,3 +1,3 @@
-package backend.megamarket.service.orderService.dbs.dao;
+package backend.megamarket.service.orderService.db.dto;
 
-public record OrderItem(Long productId, Integer quantity) {}
+public record OrderItem(Long productId, Long quantity) {}

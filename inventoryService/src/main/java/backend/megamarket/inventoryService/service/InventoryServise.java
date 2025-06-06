@@ -1,15 +1,12 @@
 package backend.megamarket.inventoryService.service;
 
-import backend.megamarket.inventoryService.service.db.dao.ProductRepository;
-import backend.megamarket.inventoryService.service.db.model.Product;
-import client.inventory_service.response.grpc.InventoryServiceGrpc;
-import client.inventory_service.response.grpc.ProductInfo;
+import backend.megamarket.inventoryService.service.dto.dao.ProductRepository;
+import backend.megamarket.inventoryService.service.dto.model.Product;
+import client.inventory_service.response.grpc.*;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
-import org.springframework.grpc.server.service.GrpcService;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -76,5 +73,49 @@ public class InventoryServise extends InventoryServiceGrpc.InventoryServiceImplB
                             .asRuntimeException());
                     return null;
                 });
+    }
+    @Override
+    public void addOrder(client.inventory_service.response.grpc.InventoryRequest request,
+                               StreamObserver<client.inventory_service.response.grpc.InventoryResponse> responseObserver) {
+        List<ProductQuery> productQueries = request.getProductsList();
+
+        List<ProductInfo> updatedProducts = productQueries.stream().map(query -> {
+            Long productId = query.getProductId();
+            Long orderedQuantity = query.getQuantity();
+
+            Optional<Product> optionalProduct = productRepository.findById(productId);
+
+            Product product = optionalProduct.get();
+            long currentStock = product.getQuantity();
+
+            if (currentStock < orderedQuantity) {
+                return ProductInfo.newBuilder()
+                        .setProductId(productId)
+                        .setName(product.getName())
+                        .setPrice(product.getPrice())
+                        .setDiscount(product.getSale() == null ? 0.0 : product.getSale())
+                        .setAvailableQuantity(currentStock)
+                        .setStatus(ProductStatus.INSUFFICIENT_QUANTITY)
+                        .build();
+            }
+            product.setQuantity(currentStock - orderedQuantity);
+            productRepository.save(product);
+
+            return ProductInfo.newBuilder()
+                    .setProductId(productId)
+                    .setName(product.getName())
+                    .setPrice(product.getPrice())
+                    .setDiscount(product.getSale() == null ? 0.0 : product.getSale())
+                    .setAvailableQuantity(product.getQuantity())
+                    .setStatus(ProductStatus.OK)
+                    .build();
+        }).toList();
+
+        InventoryResponse response = InventoryResponse.newBuilder()
+                .addAllItems(updatedProducts)
+                .build();
+
+        responseObserver.onNext(response);
+        responseObserver.onCompleted();
     }
 }

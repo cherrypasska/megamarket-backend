@@ -1,7 +1,7 @@
 package backend.megamarket.inventoryService.service.controller;
 
 import backend.megamarket.inventoryService.service.CrudService;
-import backend.megamarket.inventoryService.service.db.model.Product;
+import backend.megamarket.inventoryService.service.dto.model.Product;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

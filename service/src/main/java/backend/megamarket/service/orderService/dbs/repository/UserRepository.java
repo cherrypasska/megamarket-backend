@@ -1,6 +1,6 @@
-package backend.megamarket.service.orderService.dbs.repository;
+package backend.megamarket.service.orderService.db.repository;
 
-import backend.megamarket.service.orderService.dbs.models.User;
+import backend.megamarket.service.orderService.db.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.Optional;

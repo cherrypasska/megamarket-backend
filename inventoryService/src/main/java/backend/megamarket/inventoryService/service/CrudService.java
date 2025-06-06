@@ -1,9 +1,8 @@
 package backend.megamarket.inventoryService.service;
 
-import backend.megamarket.inventoryService.service.db.dao.ProductRepository;
-import backend.megamarket.inventoryService.service.db.model.Product;
+import backend.megamarket.inventoryService.service.dto.dao.ProductRepository;
+import backend.megamarket.inventoryService.service.dto.model.Product;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

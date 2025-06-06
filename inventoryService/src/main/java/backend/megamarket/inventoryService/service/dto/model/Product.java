@@ -1,4 +1,4 @@
-package backend.megamarket.inventoryService.service.db.model;
+package backend.megamarket.inventoryService.service.dto.model;
 
 import jakarta.persistence.*;
 import lombok.Data;

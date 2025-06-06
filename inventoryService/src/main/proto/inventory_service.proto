@@ -35,4 +35,5 @@ message InventoryResponse {
 
 service InventoryService {
   rpc checkInventory(InventoryRequest) returns (InventoryResponse);
+  rpc addOrder(InventoryRequest) returns (InventoryResponse);
 }
