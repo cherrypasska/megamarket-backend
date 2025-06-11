@@ -5,18 +5,17 @@ package inventory;
 option java_multiple_files = true;
 option java_package = "client.inventory.response.grpc";
 
-message ProductQuery {
+message ProductQueryDto {
   int64 productId = 1;
   int64 quantity = 2;
 }
 
 enum ProductStatus {
   OK = 0;
-  NOT_FOUND = 1;
-  INSUFFICIENT_QUANTITY = 2;
+  INSUFFICIENT_QUANTITY = 1;
 }
 
-message ProductInfo {
+message ProductInfoDto {
   int64 productId = 1;
   string name = 2;
   double price = 3;
@@ -25,15 +24,17 @@ message ProductInfo {
   ProductStatus status = 6;
 }
 
-message InventoryRequest {
-  repeated ProductQuery products = 1;
+message InventoryRequestDto {
+  int64 orderId = 1;
+  repeated ProductQueryDto products = 2;
 }
 
-message InventoryResponse {
-  repeated ProductInfo items = 1;
+message InventoryResponseDto {
+  int64 orderId = 1;
+  repeated ProductInfoDto items = 2;
 }
 
 service InventoryService {
-  rpc checkInventory(InventoryRequest) returns (InventoryResponse);
-  rpc addOrder(InventoryRequest) returns (InventoryResponse);
+  rpc checkInventory(InventoryRequestDto) returns (InventoryResponseDto);
+  rpc addOrder(InventoryRequestDto) returns (InventoryResponseDto);
 }

@@ -1,7 +1,7 @@
-package backend.megamarket.service.orderService.configs;
+package backend.megamarket.service.orderservice.configs;
 
-import backend.megamarket.service.orderService.servise.JwtService;
-import backend.megamarket.service.orderService.servise.UserService;
+import backend.megamarket.service.orderservice.services.JwtService;
+import backend.megamarket.service.orderservice.services.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,8 +16,14 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
 import java.io.IOException;
 
+/**
+ * Фильтр, обрабатывающий JWT-аутентификацию для входящих HTTP-запросов.
+ * Проверяет наличие и корректность JWT-токена в заголовке Authorization.
+ * Если токен валиден, устанавливает аутентификацию в контекст безопасности Spring Security.
+ */
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -25,7 +31,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     public static final String HEADER_NAME = "Authorization";
     private final JwtService jwtService;
     private final UserService userService;
-
+    /**
+     * Метод фильтрации запроса. Извлекает JWT из заголовка Authorization,
+     * проверяет его валидность и при необходимости аутентифицирует пользователя.
+     *
+     * @param request     HTTP-запрос
+     * @param response    HTTP-ответ
+     * @param filterChain цепочка фильтров
+     * @throws ServletException в случае ошибки сервлета
+     * @throws IOException      в случае ошибки ввода-вывода
+     */
     @Override
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,

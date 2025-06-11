@@ -34,7 +34,7 @@
 		<spring-grpc.version>0.8.0</spring-grpc.version>
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
-		<modelmapper.version>3.0.0</modelmapper.version>
+		<modelmapper.version>3.2.0</modelmapper.version>
 	</properties>
 	<dependencies>
 		<!-- Spring Boot Starter Web -->
