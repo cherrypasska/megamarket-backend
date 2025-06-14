@@ -1,7 +1,7 @@
 package backend.megamarket.service.orderservice.mapper;
 
-import backend.megamarket.service.orderservice.dtos.OrderItemDto;
-import backend.megamarket.service.orderservice.dtos.OrderSendEventDto;
+import backend.megamarket.service.orderservice.dto.OrderItemDto;
+import backend.megamarket.service.orderservice.dto.OrderSendEventDto;
 import client.inventory.response.grpc.InventoryResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;

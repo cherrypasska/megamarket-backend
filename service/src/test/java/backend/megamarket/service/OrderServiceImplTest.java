@@ -1,10 +1,10 @@
 package backend.megamarket.service;
 
-import backend.megamarket.service.orderservice.controllers.EmptyOrderException;
-import backend.megamarket.service.orderservice.dtos.OrderItemDto;
+import backend.megamarket.service.orderservice.controller.EmptyOrderException;
+import backend.megamarket.service.orderservice.dto.OrderItemDto;
 import backend.megamarket.service.orderservice.entity.UserEntity;
 import backend.megamarket.service.orderservice.repository.UserRepository;
-import backend.megamarket.service.orderservice.services.OrderServiceImpl;
+import backend.megamarket.service.orderservice.service.OrderServiceImpl;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.junit.jupiter.api.BeforeEach;

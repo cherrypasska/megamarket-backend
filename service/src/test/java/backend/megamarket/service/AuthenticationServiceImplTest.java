@@ -1,14 +1,14 @@
 package backend.megamarket.service;
 
-import backend.megamarket.service.orderservice.dtos.JwtAuthenticationResponse;
-import backend.megamarket.service.orderservice.dtos.RefreshRequestDto;
-import backend.megamarket.service.orderservice.dtos.SignInRequestDto;
-import backend.megamarket.service.orderservice.dtos.SignUpRequestDto;
+import backend.megamarket.service.orderservice.dto.JwtAuthenticationResponse;
+import backend.megamarket.service.orderservice.dto.RefreshRequestDto;
+import backend.megamarket.service.orderservice.dto.SignInRequestDto;
+import backend.megamarket.service.orderservice.dto.SignUpRequestDto;
 import backend.megamarket.service.orderservice.entity.UserEntity;
 import backend.megamarket.service.orderservice.entity.enums.Role;
-import backend.megamarket.service.orderservice.services.AuthenticationServiceImpl;
-import backend.megamarket.service.orderservice.services.JwtService;
-import backend.megamarket.service.orderservice.services.UserService;
+import backend.megamarket.service.orderservice.service.AuthenticationServiceImpl;
+import backend.megamarket.service.orderservice.service.JwtService;
+import backend.megamarket.service.orderservice.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;

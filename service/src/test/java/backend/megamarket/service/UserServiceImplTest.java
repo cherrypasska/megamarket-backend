@@ -3,7 +3,7 @@ package backend.megamarket.service;
 import backend.megamarket.service.orderservice.entity.UserEntity;
 import backend.megamarket.service.orderservice.entity.enums.Role;
 import backend.megamarket.service.orderservice.repository.UserRepository;
-import backend.megamarket.service.orderservice.services.UserServiceImpl;
+import backend.megamarket.service.orderservice.service.UserServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
