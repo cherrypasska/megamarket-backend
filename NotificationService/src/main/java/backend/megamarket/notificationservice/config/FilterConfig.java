@@ -10,7 +10,6 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class FilterConfig {
-
     /**
      * Регистрирует фильтр {@link JwtValidationFilter}, который проверяет JWT токены
      * для всех входящих HTTP-запросов по пути, начинающемуся с "/api/".

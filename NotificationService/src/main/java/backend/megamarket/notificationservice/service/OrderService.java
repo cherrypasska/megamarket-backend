@@ -2,6 +2,7 @@ package backend.megamarket.notificationservice.service;
 
 import backend.megamarket.notificationservice.entity.OrderEntity;
 import backend.megamarket.notificationservice.dto.OrderEventDto;
+import backend.megamarket.notificationservice.entity.OrderProductsEntity;
 
 import java.util.List;
 
@@ -12,5 +13,5 @@ public interface OrderService {
 
     List<OrderEntity> getOrdersByUserId(Long userId);
 
-    List<OrderEntity> save(List<OrderEventDto> clientDto);
+    List<OrderProductsEntity> save(OrderEventDto clientDto);
 }

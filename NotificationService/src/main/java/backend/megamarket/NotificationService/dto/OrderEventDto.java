@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 /**
  * DTO данных заказа.
  * Содержит информацию о продукте, количестве, цене, скидке и идентификаторе пользователя.
@@ -16,32 +18,17 @@ import lombok.NoArgsConstructor;
 public class OrderEventDto {
 
     /**
-     * Идентификатор заказа.
+     * Уникальный идентификатор пользователя (заказчика)
      */
     private Long orderId;
 
     /**
-     * Идентификатор продукта.
-     */
-    private Long productId;
-
-    /**
-     * Количество продукта в заказе.
-     */
-    private Long quantity;
-
-    /**
-     * Цена продукта за 1 штуку.
-     */
-    private Double price;
-
-    /**
-     * Скидка неа продукт.
-     */
-    private Double sale;
-
-    /**
-     * Идентификатор пользователя.
+     * Уникальный идентификатор заказа
      */
     private Long userId;
+
+    /**
+     * Продукты (вещи) входящие в заказ
+     */
+    private List<OrderItemDto> products;
 }

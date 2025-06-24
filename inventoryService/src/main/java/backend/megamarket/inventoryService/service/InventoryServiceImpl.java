@@ -1,5 +1,7 @@
 package backend.megamarket.inventoryservice.service;
 
+import backend.megamarket.inventoryservice.mapper.InventoryResponseMapper;
+import backend.megamarket.inventoryservice.mapper.ProductInfoMapper;
 import backend.megamarket.inventoryservice.repository.ProductRepository;
 import backend.megamarket.inventoryservice.entity.ProductEntity;
 import client.inventory_service.response.grpc.*;
@@ -9,6 +11,7 @@ import io.grpc.stub.StreamObserver;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -24,8 +27,17 @@ import java.util.concurrent.CompletableFuture;
 @Service
 @RequiredArgsConstructor
 public class InventoryServiceImpl extends InventoryServiceGrpc.InventoryServiceImplBase implements InventoryService {
+
     private final ProductRepository productRepository;
+
+    private final ProductInfoMapper productInfoMapper;
+
+    private final InventoryResponseMapper inventoryResponseMapper;
+
     private Server server;
+
+    @Value("${grpc.server.port}")
+    private int grpcPort;
 
     /**
      * Инициализирует и запускает gRPC-сервер на порту 9090.
@@ -36,11 +48,13 @@ public class InventoryServiceImpl extends InventoryServiceGrpc.InventoryServiceI
     @Override
     public void start() throws IOException {
         server = ServerBuilder
-                .forPort(9090)
-                .addService(new InventoryServiceImpl(productRepository))
+                .forPort(grpcPort)
+                .addService(this)
                 .build()
                 .start();
-        log.info("Server started, listening on " + server.getPort());
+
+        log.info("gRPC server started on port {}", grpcPort);
+
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             if (server != null) {
                 server.shutdown();
@@ -61,6 +75,8 @@ public class InventoryServiceImpl extends InventoryServiceGrpc.InventoryServiceI
 
         Long orderId = request.getOrderId();
 
+        log.info("Началась проверка наличия на складе для заказа с id{}", orderId);
+
         List<client.inventory_service.response.grpc.ProductQueryDto> order = request.getProductsList();
 
         List<CompletableFuture<ProductInfoDto>> futures = order.stream()
@@ -71,14 +87,9 @@ public class InventoryServiceImpl extends InventoryServiceGrpc.InventoryServiceI
                     Optional<ProductEntity> optionalProduct = productRepository.findById(productId);
 
                     if (optionalProduct.isEmpty()) {
-                        return client.inventory_service.response.grpc.ProductInfoDto.newBuilder()
-                                .setProductId(productId)
-                                .setName("")
-                                .setPrice(0.0)
-                                .setDiscount(0.0)
-                                .setAvailableQuantity(0)
-                                .setStatus(client.inventory_service.response.grpc.ProductStatus.INSUFFICIENT_QUANTITY)
-                                .build();
+                        log.warn("Продукт с ID {} не найден на складе (заказ id{})", productId, orderId);
+
+                        return productInfoMapper.emptyMapping(productId);
                     }
 
                     ProductEntity product = optionalProduct.get();
@@ -87,15 +98,15 @@ public class InventoryServiceImpl extends InventoryServiceGrpc.InventoryServiceI
                             product.getQuantity() >= requestedQuantity
                                     ? client.inventory_service.response.grpc.ProductStatus.OK
                                     : client.inventory_service.response.grpc.ProductStatus.INSUFFICIENT_QUANTITY;
-
-                    return client.inventory_service.response.grpc.ProductInfoDto.newBuilder()
-                            .setProductId(product.getId())
-                            .setName(product.getName())
-                            .setPrice(product.getPrice())
-                            .setDiscount(product.getSale() == null ? 0.0 : product.getSale())
-                            .setAvailableQuantity(product.getQuantity())
-                            .setStatus(status)
-                            .build();
+                    log.info("Продукт ID {}: запрошено {}, в наличии {} — статус {}",
+                            productId, requestedQuantity, product.getQuantity(), status);
+                    if (status == client.inventory_service.response.grpc.ProductStatus.OK) {
+                        log.debug("Продукт ID {} достаточно на складе для заказа №{}", productId, orderId);
+                    } else {
+                        log.warn("Недостаточно продукта ID {}: нужно {}, есть {} (заказ id{})",
+                                productId, requestedQuantity, product.getQuantity(), orderId);
+                    }
+                    return productInfoMapper.argMapper(product, status);
                 })).toList();
 
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
@@ -103,13 +114,10 @@ public class InventoryServiceImpl extends InventoryServiceGrpc.InventoryServiceI
                         .map(CompletableFuture::join)
                         .toList())
                 .thenAccept(productInfos -> {
-                    client.inventory_service.response.grpc.InventoryResponseDto response =
-                            client.inventory_service.response.grpc.InventoryResponseDto.newBuilder()
-                                    .setOrderId(orderId)
-                                    .addAllItems(productInfos)
-                                    .build();
+                    client.inventory_service.response.grpc.InventoryResponseDto response = productInfoMapper.responseMapper(productInfos, orderId);
                     responseObserver.onNext(response);
                     responseObserver.onCompleted();
+                    log.info("Проверка завершена: {} товаров обработано для заказа id{}", productInfos.size(), orderId);
                 })
                 .exceptionally(ex -> {
                     ex.printStackTrace();
@@ -130,9 +138,12 @@ public class InventoryServiceImpl extends InventoryServiceGrpc.InventoryServiceI
     @Override
     public void addOrder(client.inventory_service.response.grpc.InventoryRequestDto request,
                          StreamObserver<client.inventory_service.response.grpc.InventoryResponseDto> responseObserver) {
+        Long orderId = request.getOrderId();
+        log.info("Начато обновление запасов по подтвержденному заказу id{}", orderId);
         List<ProductQueryDto> productQueries = request.getProductsList();
 
         List<ProductInfoDto> updatedProducts = productQueries.stream().map(query -> {
+
             Long productId = query.getProductId();
             Long orderedQuantity = query.getQuantity();
 
@@ -142,34 +153,21 @@ public class InventoryServiceImpl extends InventoryServiceGrpc.InventoryServiceI
             long currentStock = product.getQuantity();
 
             if (currentStock < orderedQuantity) {
-                return ProductInfoDto.newBuilder()
-                        .setProductId(productId)
-                        .setName(product.getName())
-                        .setPrice(product.getPrice())
-                        .setDiscount(product.getSale() == null ? 0.0 : product.getSale())
-                        .setAvailableQuantity(currentStock)
-                        .setStatus(ProductStatus.INSUFFICIENT_QUANTITY)
-                        .build();
+                log.warn("Недостаточно товара ID {}: нужно {}, есть {} (заказ id{})",
+                        productId, orderedQuantity, currentStock, orderId);
+                return productInfoMapper.productInfoIQMapping(productId, product, currentStock);
             }
             product.setQuantity(currentStock - orderedQuantity);
             productRepository.save(product);
+            log.info("Обновлены запасы товара ID {}: новое количество {} (заказ id{})",
+                    productId, product.getQuantity(), orderId);
 
-            return ProductInfoDto.newBuilder()
-                    .setProductId(productId)
-                    .setName(product.getName())
-                    .setPrice(product.getPrice())
-                    .setDiscount(product.getSale() == null ? 0.0 : product.getSale())
-                    .setAvailableQuantity(product.getQuantity())
-                    .setStatus(ProductStatus.OK)
-                    .build();
+            return productInfoMapper.productInfoOkMapping(productId, product, currentStock);
         }).toList();
-        Long orderId = request.getOrderId();
-        InventoryResponseDto response = InventoryResponseDto.newBuilder()
-                .setOrderId(orderId)
-                .addAllItems(updatedProducts)
-                .build();
+        InventoryResponseDto response = inventoryResponseMapper.InventoryResponseMapping(orderId, updatedProducts);
 
         responseObserver.onNext(response);
         responseObserver.onCompleted();
+        log.info("Обработка заказа №{} завершена. Обновлено {} продуктов.", orderId, updatedProducts.size());
     }
 }

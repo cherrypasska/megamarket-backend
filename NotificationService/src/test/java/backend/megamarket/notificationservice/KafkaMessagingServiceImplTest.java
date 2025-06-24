@@ -1,67 +1,53 @@
 package backend.megamarket.notificationservice;
 
 import backend.megamarket.notificationservice.dto.OrderEventDto;
+import backend.megamarket.notificationservice.dto.OrderItemDto;
 import backend.megamarket.notificationservice.service.KafkaMessagingServiceImpl;
+import backend.megamarket.notificationservice.service.KafkaProducerService;
 import backend.megamarket.notificationservice.service.OrderService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.modelmapper.ModelMapper;
+import org.mockito.*;
 
-import java.util.Collections;
 import java.util.List;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
 class KafkaMessagingServiceImplTest {
 
     @Mock
     private OrderService orderService;
 
     @Mock
-    private ModelMapper modelMapper;
+    private KafkaProducerService kafkaProducer;
 
     @InjectMocks
-    private KafkaMessagingServiceImpl kafkaService;
+    private KafkaMessagingServiceImpl kafkaMessagingService;
 
-    @Test
-    void createOrder_ShouldProcessEventsCorrectly() {
-
-        List<OrderEventDto> inputEvents = Collections.singletonList(new OrderEventDto());
-        List<OrderEventDto> mappedOrders = Collections.singletonList(new OrderEventDto());
-
-        when(modelMapper.map(inputEvents, List.class)).thenReturn(mappedOrders);
-
-        List<OrderEventDto> result = kafkaService.createOrder(inputEvents);
-
-        verify(orderService, times(1)).save(mappedOrders);
-        verifyNoMoreInteractions(orderService);
-        assertThat(result).isEqualTo(inputEvents);
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    void createOrder_ShouldLogEventAndHandleEmptyList() {
+    void createOrder_ShouldCallServicesAndReturnSameDto() {
+        // Arrange
+        OrderItemDto item = new OrderItemDto();
+        item.setProductId(1L);
+        item.setQuantity(2L);
 
-        List<OrderEventDto> emptyEvents = Collections.emptyList();
-        when(modelMapper.map(emptyEvents, List.class)).thenReturn(Collections.emptyList());
+        OrderEventDto inputEvent = new OrderEventDto();
+        inputEvent.setOrderId(100L);
+        inputEvent.setUserId(200L);
+        inputEvent.setProducts(List.of(item));
 
-        kafkaService.createOrder(emptyEvents);
+        // Act
+        OrderEventDto result = kafkaMessagingService.createOrder(inputEvent);
 
-        verify(orderService).save(Collections.emptyList());
-    }
-
-    @Test
-    void createOrder_ShouldHandleMappingException() {
-
-        List<OrderEventDto> events = Collections.singletonList(new OrderEventDto());
-        when(modelMapper.map(events, List.class)).thenThrow(new RuntimeException("Mapping failed"));
-
-        assertThrows(RuntimeException.class, () -> kafkaService.createOrder(events));
-        verifyNoInteractions(orderService);
+        // Assert
+        verify(orderService, times(1)).save(inputEvent);
+        verify(kafkaProducer, times(1)).sendOrderConfirmation(inputEvent);
+        assertEquals(inputEvent, result);
     }
 }

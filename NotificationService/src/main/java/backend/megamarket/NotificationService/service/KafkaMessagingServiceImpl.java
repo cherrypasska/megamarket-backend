@@ -3,12 +3,9 @@ package backend.megamarket.notificationservice.service;
 import backend.megamarket.notificationservice.dto.OrderEventDto;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 /**
  * Сервис для обработки сообщений из Kafka, связанных с созданием заказов.
@@ -17,7 +14,7 @@ import java.util.List;
 @Slf4j
 @Service
 @AllArgsConstructor
-public class KafkaMessagingServiceImpl implements KafkaMessagingService {
+public class KafkaMessagingServiceImpl {
 
     /**
      * Топик Kafka.
@@ -31,7 +28,7 @@ public class KafkaMessagingServiceImpl implements KafkaMessagingService {
 
     private final OrderService orderService;
 
-    private final ModelMapper modelMapper;
+    private final KafkaProducerService kafkaProducer;
 
     /**
      * Обрабатывает сообщения о создании заказов из Kafka.
@@ -42,10 +39,11 @@ public class KafkaMessagingServiceImpl implements KafkaMessagingService {
      */
     @Transactional
     @KafkaListener(topics = topicCreateOrder, groupId = kafkaConsumerGroupId)
-    @Override
-    public List<OrderEventDto> createOrder(List<OrderEventDto> orderEvent) {
+    public OrderEventDto createOrder(OrderEventDto orderEvent) {
         log.info("Message consumed {}", orderEvent);
-        orderService.save(modelMapper.map(orderEvent, List.class));
+        orderService.save(orderEvent);
+        kafkaProducer.sendOrderConfirmation(orderEvent);
+
         return orderEvent;
     }
 }

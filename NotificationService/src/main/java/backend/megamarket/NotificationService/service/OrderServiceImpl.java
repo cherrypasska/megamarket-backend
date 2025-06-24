@@ -1,12 +1,14 @@
 package backend.megamarket.notificationservice.service;
 
+import backend.megamarket.notificationservice.entity.OrderProductsEntity;
+import backend.megamarket.notificationservice.mapper.OrderEntityMapper;
+import backend.megamarket.notificationservice.mapper.OrderProductsEntityMapper;
+import backend.megamarket.notificationservice.repository.OrderProductsRepository;
 import backend.megamarket.notificationservice.repository.OrderRepository;
 import backend.megamarket.notificationservice.entity.OrderEntity;
 import backend.megamarket.notificationservice.dto.OrderEventDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,13 +26,11 @@ public class OrderServiceImpl  implements OrderService {
 
     private final OrderRepository orderRepository;
 
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final OrderProductsEntityMapper orderProductsEntityMapper;
 
-    /**
-     * Топик Kafka.
-     */
-    @Value("${topic.add-order}")
-    private String orderConfirmationTopic;
+    private final OrderEntityMapper orderEntityMapper;
+
+    private final OrderProductsRepository orderProductsRepository;
 
     /**
      * Сохраняет список заказов в базе данных и отправляет подтверждение в Kafka.
@@ -40,26 +40,31 @@ public class OrderServiceImpl  implements OrderService {
      */
     @Override
     @Transactional
-    public List<OrderEntity> save(List<OrderEventDto> clientDto) {
+    public List<OrderProductsEntity> save(OrderEventDto clientDto) {
+
+        Long orderId = clientDto.getOrderId();
+        Long userId = clientDto.getUserId();
+
+        log.info("Получен заказ на сохранение: orderId={}, userId={}, товаров={}",
+                orderId, userId, clientDto.getProducts().size());
+
+        OrderEntity orderEntity = orderEntityMapper.orderEntityMapping(clientDto);
         try {
-            List<OrderEntity> orders = clientDto.stream().map(p -> {
-                OrderEntity newOrder = new OrderEntity();
-                newOrder.setOrderId(p.getOrderId());
-                newOrder.setPrice(p.getPrice());
-                newOrder.setQuantity(p.getQuantity());
-                newOrder.setSale(p.getSale());
-                newOrder.setProductId(p.getProductId());
-                newOrder.setUserId(p.getUserId());
-                newOrder.setTotalPrice(p.getQuantity() * (p.getPrice() - p.getPrice() * p.getSale()));
+            List<OrderProductsEntity> orders = clientDto.getProducts().stream().map(p -> {
+                OrderProductsEntity newOrder = orderProductsEntityMapper.OrderProductsEntityMapping(clientDto, p);
+                orderEntity.setTotalPrice(orderEntity.getTotalPrice() + p.getQuantity() * (p.getPrice() - p.getPrice() * p.getSale()));
+                log.debug("Добавлен продукт в заказ: productId={}, quantity={}, price={}, sale={}",
+                        p.getProductId(), p.getQuantity(), p.getPrice(), p.getSale());
                 return newOrder;
             }).toList();
-            orderRepository.saveAll(orders);
-            log.info("Save order");
-            kafkaTemplate.send(orderConfirmationTopic, clientDto);
+            orderRepository.save(orderEntity);
+            orderProductsRepository.saveAll(orders);
+            log.info("Заказ успешно сохранён: orderId={}, userId={}, итого сумма={}",
+                    orderId, userId, orderEntity.getTotalPrice());
             return orders;
         }
         catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("Ошибка при сохранении заказа orderId={}, userId={}: {}", orderId, userId, e.getMessage(), e);
             return null;
         }
     }
@@ -71,6 +76,8 @@ public class OrderServiceImpl  implements OrderService {
      */
     @Override
     public List<OrderEntity> getAllProducts() {
+        List<OrderEntity> allOrders = orderRepository.findAll();
+        log.info("Получены все заказы: общее количество={}", allOrders.size());
         return orderRepository.findAll();
     }
 
