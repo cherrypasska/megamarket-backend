@@ -46,4 +46,8 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
      * @return true, если пользователь с таким email и паролем существует, иначе false
      */
     boolean existsByEmailAndPassword(String email, String password);
+
+    Optional<UserEntity> findByEmail(String email);
+
+    UserEntity getById(Long aLong);
 }

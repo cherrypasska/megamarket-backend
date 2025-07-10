@@ -71,3 +71,53 @@ services:
       echo -e 'Successfully created the following topics:'
       kafka-topics --bootstrap-server kafka:9092 --list
       "
+  postgres-users:
+    image: postgres:15
+    container_name: postgres-users
+    environment:
+      POSTGRES_DB: usersdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 3822
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./init/users:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-products:
+    image: postgres:15
+    container_name: postgres-products
+    environment:
+      POSTGRES_DB: productsdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 3822
+    ports:
+      - "5434:5432"
+    volumes:
+      - ./init/products:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-orders:
+    image: postgres:15
+    container_name: postgres-orders
+    environment:
+      POSTGRES_DB: ordersdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 3822
+    ports:
+      - "5435:5432"
+    volumes:
+      - ./init/orders:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5

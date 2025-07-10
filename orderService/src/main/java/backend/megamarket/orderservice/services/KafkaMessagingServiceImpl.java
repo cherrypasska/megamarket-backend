@@ -1,14 +1,11 @@
-package backend.megamarket.orderservice.service;
+package backend.megamarket.orderservice.services;
 
 import backend.megamarket.orderservice.dto.OrderEventDto;
-import backend.megamarket.orderservice.dto.OrderSendEventDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 /**
  * Реализация сервиса для отправки сообщений заказов в Kafka.

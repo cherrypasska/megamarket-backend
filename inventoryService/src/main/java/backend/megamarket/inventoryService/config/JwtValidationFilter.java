@@ -52,25 +52,27 @@ public class JwtValidationFilter implements Filter {
 
         String jwt = authHeader.substring(7);
 
+        Claims claims;
         try {
-            Claims claims = Jwts.parserBuilder()
+            claims = Jwts.parserBuilder()
                     .setSigningKey(getSigningKey())
                     .build()
                     .parseClaimsJws(jwt)
                     .getBody();
-
-            String role = (String) claims.get("role");
-            if (!"ROLE_ADMIN".equals(role)) {
-                httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "Требуется роль ADMIN");
-                return;
-            }
-
-            chain.doFilter(request, response);
-
         } catch (Exception e) {
             httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Неверный токен");
+            return;
         }
+
+        String role = (String) claims.get("role");
+        if (!"ROLE_ADMIN".equals(role)) {
+            httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "Требуется роль ADMIN");
+            return;
+        }
+
+        chain.doFilter(request, response);
     }
+
 
     private Key getSigningKey() {
         byte[] keyBytes = Base64.getDecoder().decode(jwtSigningKey);

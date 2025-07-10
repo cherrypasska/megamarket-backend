@@ -1,7 +1,7 @@
 package backend.megamarket.orderservice.controller;
 
 import backend.megamarket.orderservice.dto.OrderItemDto;
-import backend.megamarket.orderservice.service.OrderService;
+import backend.megamarket.orderservice.services.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

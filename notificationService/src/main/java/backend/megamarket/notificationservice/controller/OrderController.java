@@ -1,5 +1,6 @@
 package backend.megamarket.notificationservice.controller;
 
+import backend.megamarket.notificationservice.dto.OrdersDto;
 import backend.megamarket.notificationservice.service.OrderService;
 import backend.megamarket.notificationservice.entity.OrderEntity;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +31,7 @@ public class OrderController {
      * @return HTTP ответ с кодом 200 и списком всех {@link OrderEntity}
      */
     @GetMapping("/all")
-    public ResponseEntity<List<OrderEntity>> getAllOrders() {
+    public ResponseEntity<List<OrdersDto>> getAllOrders() {
         return ResponseEntity.ok(orderService.getAllProducts());
     }
 
@@ -40,9 +41,9 @@ public class OrderController {
      * @param order_id идентификатор заказа
      * @return HTTP ответ с кодом 200 и списком заказов с заданным ID
      */
-    @GetMapping("/{order_id}")
-    public ResponseEntity<List<OrderEntity>> getOrderById(@PathVariable Long order_id) {
-        List<OrderEntity> orders = orderService.getOrdersByOrderId(order_id);
+    @GetMapping("/order/{order_id}")
+    public ResponseEntity<List<OrdersDto>> getOrderById(@PathVariable Long order_id) {
+        List<OrdersDto> orders = orderService.getOrdersByOrderId(order_id);
         return ResponseEntity.ok(orders);
     }
 
@@ -52,9 +53,9 @@ public class OrderController {
      * @param user_id идентификатор пользователя
      * @return HTTP ответ с кодом 200 и списком заказов пользователя
      */
-    @GetMapping("/{user_id}")
-    public ResponseEntity<List<OrderEntity>> getOrderByUserId(@PathVariable Long user_id) {
-        List<OrderEntity> orders = orderService.getOrdersByUserId(user_id);
+    @GetMapping("/user/{user_id}")
+    public ResponseEntity<List<OrdersDto>> getOrderByUserId(@PathVariable Long user_id) {
+        List<OrdersDto> orders = orderService.getOrdersByUserId(user_id);
         return ResponseEntity.ok(orders);
     }
 }

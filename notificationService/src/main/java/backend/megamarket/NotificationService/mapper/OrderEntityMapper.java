@@ -4,6 +4,7 @@ import backend.megamarket.notificationservice.dto.OrderEventDto;
 import backend.megamarket.notificationservice.entity.OrderEntity;
 import lombok.RequiredArgsConstructor;
 import org.mapstruct.Mapper;
+import org.springframework.stereotype.Component;
 
 /**
  * Маппер для преобразования данных из {@link OrderEventDto}
@@ -11,7 +12,7 @@ import org.mapstruct.Mapper;
  * <p>
  * Используется при создании новой записи о заказе.
  */
-@Mapper
+@Component
 @RequiredArgsConstructor
 public class OrderEntityMapper {
 

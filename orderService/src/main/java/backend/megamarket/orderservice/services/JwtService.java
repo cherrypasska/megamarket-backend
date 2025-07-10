@@ -1,4 +1,4 @@
-package backend.megamarket.orderservice.service;
+package backend.megamarket.orderservice.services;
 
 import io.jsonwebtoken.Claims;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -27,4 +27,6 @@ public interface JwtService {
     Claims extractAllClaims(String token);
 
     Key getSigningKey();
+
+    String generateRefreshToken(UserDetails userDetails);
 }

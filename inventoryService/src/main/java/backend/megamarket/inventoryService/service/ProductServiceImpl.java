@@ -1,5 +1,8 @@
 package backend.megamarket.inventoryservice.service;
 
+import backend.megamarket.inventoryservice.controller.ProductNotFoundException;
+import backend.megamarket.inventoryservice.dto.ProductDto;
+import backend.megamarket.inventoryservice.mapper.ProductDtoToEntityMapper;
 import backend.megamarket.inventoryservice.repository.ProductRepository;
 import backend.megamarket.inventoryservice.entity.ProductEntity;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +20,8 @@ import java.util.Optional;
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
+
+    private final ProductDtoToEntityMapper productDtoToEntityMapper;
 
     /**
      * Возвращает список всех продуктов, хранящихся в базе данных.
@@ -47,16 +52,18 @@ public class ProductServiceImpl implements ProductService {
     /**
      * Добавляет новый продукт или увеличивает количество уже существующего с таким же названием.
      *
-     * @param product сущность {@link ProductEntity}, которую необходимо добавить
+     * @param productDto сущность {@link ProductDto}, которую необходимо добавить
      * @return сохранённая или обновлённая сущность {@link ProductEntity}
      */
     @Override
-    public ProductEntity addProduct(ProductEntity product) {
+    public ProductEntity addProduct(ProductDto productDto) {
+        ProductEntity product = productDtoToEntityMapper.map(productDto);
         if (productRepository.existsByName(product.getName())) {
             ProductEntity existing = productRepository.findByName(product.getName());
             existing.setQuantity(existing.getQuantity() + product.getQuantity());
             return productRepository.save(existing);
         } else {
+            System.out.println(product);
             return productRepository.save(product);
         }
     }
@@ -69,11 +76,8 @@ public class ProductServiceImpl implements ProductService {
      */
     @Override
     public ProductEntity getProductById(Long id) {
-        Optional<ProductEntity> product = productRepository.findById(id);
-        if (product.isPresent()) {
-            return product.orElse(null);
-        } else {
-            return null;
-        }
+        return productRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException("Продукт с ID " + id + " не найден."));
     }
+
 }

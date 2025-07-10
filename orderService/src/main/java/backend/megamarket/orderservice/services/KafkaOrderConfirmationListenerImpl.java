@@ -1,11 +1,10 @@
-package backend.megamarket.orderservice.service;
+package backend.megamarket.orderservice.services;
 
 import backend.megamarket.orderservice.dto.OrderEventDto;
 import backend.megamarket.orderservice.dto.OrderSendEventDto;
 import client.inventory.response.grpc.InventoryRequestDto;
 import client.inventory.response.grpc.InventoryServiceGrpc;
 import client.inventory.response.grpc.ProductQueryDto;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -48,15 +47,15 @@ public class KafkaOrderConfirmationListenerImpl {
     @KafkaListener(topics = "${topic.add-order}", groupId = "${spring.kafka.consumer.group-id}")
     public void onOrderConfirmed(String message) {
         try {
-            log.info("Получено сообщение из Kafka: {}", message);
             ObjectMapper mapper = new ObjectMapper();
 
             OrderEventDto confirmedOrders = mapper.readValue(
                     message,
                     OrderEventDto.class
             );
+            log.info("[ID:{}] Получено сообщение из Kafka: {}", confirmedOrders.getOrderId(), message);
 
-            log.info("Подтвержден заказ: orderId={}, userId={}, товаров={}",
+            log.info("[ID:{}] Подтвержден заказ: userId={}, товаров={}",
                     confirmedOrders.getOrderId(), confirmedOrders.getUserId(), confirmedOrders.getProducts().size());;
 
             List<ProductQueryDto> queries = confirmedOrders.getProducts().stream()
@@ -68,6 +67,7 @@ public class KafkaOrderConfirmationListenerImpl {
 
             InventoryRequestDto request = InventoryRequestDto.newBuilder()
                     .addAllProducts(queries)
+                    .setOrderId(confirmedOrders.getOrderId())
                     .build();
 
             ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", inventoryPort)
@@ -76,7 +76,7 @@ public class KafkaOrderConfirmationListenerImpl {
 
             InventoryServiceGrpc.InventoryServiceBlockingStub stub = InventoryServiceGrpc.newBlockingStub(channel);
             var response = stub.addOrder(request);
-            log.info("Остатки обновлены в InventoryService через gRPC. Ответ: {}", response);
+            log.info("[ID:{}] Остатки обновлены в InventoryService через gRPC. Ответ: {}", confirmedOrders.getOrderId(), response);
 
             channel.shutdown();
         } catch (Exception e) {

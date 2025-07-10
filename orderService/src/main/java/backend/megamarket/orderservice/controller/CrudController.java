@@ -1,7 +1,7 @@
 package backend.megamarket.orderservice.controller;
 
 import backend.megamarket.orderservice.entity.UserEntity;
-import backend.megamarket.orderservice.service.UserService;
+import backend.megamarket.orderservice.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

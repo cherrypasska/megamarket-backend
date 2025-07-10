@@ -1,7 +1,7 @@
 package backend.megamarket.orderservice.config;
 
-import backend.megamarket.orderservice.service.JwtService;
-import backend.megamarket.orderservice.service.UserService;
+import backend.megamarket.orderservice.services.JwtService;
+import backend.megamarket.orderservice.services.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

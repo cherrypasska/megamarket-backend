@@ -1,5 +1,6 @@
 package backend.megamarket.inventoryservice.controller;
 
+import backend.megamarket.inventoryservice.dto.ProductDto;
 import backend.megamarket.inventoryservice.entity.ProductEntity;
 import backend.megamarket.inventoryservice.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -40,12 +41,7 @@ public class CrudController {
      */
     @GetMapping("/products/{product_id}")
     public ResponseEntity<ProductEntity> getProduct(@PathVariable("product_id") Long id) {
-        ProductEntity product = crudService.getProductById(id);
-        if (product != null) {
-            return ResponseEntity.ok(product);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(crudService.getProductById(id));
     }
 
     /**
@@ -55,7 +51,7 @@ public class CrudController {
      * @return добавленный продукт с присвоенным ID (200 OK)
      */
     @PostMapping("/products")
-    public ResponseEntity<ProductEntity> addProduct(@RequestBody ProductEntity product) {
+    public ResponseEntity<ProductEntity> addProduct(@RequestBody ProductDto product) {
         return ResponseEntity.ok(crudService.addProduct(product));
     }
 

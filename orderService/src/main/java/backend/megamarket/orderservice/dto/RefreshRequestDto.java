@@ -16,27 +16,18 @@ import lombok.Data;
 public class RefreshRequestDto {
 
     /**
-     * Текущее имя пользователя и имя пользователя для обновления имени.
+     * Текущее имя пользователя.
      */
     @Schema(description = "Имя пользователя", example = "Jon")
     @Size(max = 50, message = "Имя пользователя должно содержать до 50 символов")
     @NotBlank(message = "Имя пользователя не может быть пустыми")
-    private String username, newUsername;
+    private String username;
 
     /**
-     * Текущий адрес электронной почты пользователя и адрес электронной почты для обновления.
-     */
-    @Schema(description = "Адрес электронной почты", example = "jondoe@gmail.com")
-    @Size(min = 5, max = 255, message = "Адрес электронной почты должен содержать от 5 до 255 символов")
-    @NotBlank(message = "Адрес электронной почты не может быть пустыми")
-    @Email(message = "Email адрес должен быть в формате user@example.com")
-    private String email, newEmail;
-
-    /**
-     * Текущий пароль пользователя и пароль для обновления пароля.
+     * Текущий пароль пользователя
      */
     @Schema(description = "Пароль", example = "my_1secret1_password")
     @Size(max = 255, message = "Длина пароля должна быть не более 255 символов")
     @NotBlank(message = "Пароль не может быть пустыми")
-    private String password, newPassword;
+    private String password;
 }

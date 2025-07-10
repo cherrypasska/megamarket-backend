@@ -22,7 +22,7 @@ class InventoryServiceImplTest {
     @BeforeEach
     void setUp() {
         productRepository = mock(ProductRepository.class);
-        inventoryService = new InventoryServiceImpl(productRepository);
+        //inventoryService = new InventoryServiceImpl(productRepository);
     }
 
     @Test
@@ -31,7 +31,7 @@ class InventoryServiceImplTest {
         product.setId(1L);
         product.setName("Test Product");
         product.setPrice(100.0);
-        product.setSale(0.1F);
+        product.setSale(0.1D);
         product.setQuantity(50L);
 
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
@@ -94,7 +94,7 @@ class InventoryServiceImplTest {
         product.setId(1L);
         product.setName("Test Product");
         product.setPrice(100.0);
-        product.setSale(0.05F);
+        product.setSale(0.05D);
         product.setQuantity(30L);
 
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
@@ -128,7 +128,7 @@ class InventoryServiceImplTest {
         product.setId(1L);
         product.setName("Product X");
         product.setPrice(50.0);
-        product.setSale(0.0F);
+        product.setSale(0.0D);
         product.setQuantity(5L);
 
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));

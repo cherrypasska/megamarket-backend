@@ -4,7 +4,7 @@ import backend.megamarket.orderservice.dto.JwtAuthenticationResponse;
 import backend.megamarket.orderservice.dto.RefreshRequestDto;
 import backend.megamarket.orderservice.dto.SignInRequestDto;
 import backend.megamarket.orderservice.dto.SignUpRequestDto;
-import backend.megamarket.orderservice.service.AuthenticationService;
+import backend.megamarket.orderservice.services.AuthenticationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

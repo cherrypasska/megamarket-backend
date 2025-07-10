@@ -1,6 +1,6 @@
 package backend.megamarket.orderservice.config;
 
-import backend.megamarket.orderservice.service.UserService;
+import backend.megamarket.orderservice.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

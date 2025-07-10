@@ -1,14 +1,13 @@
 package backend.megamarket.orderservice;
 
 import backend.megamarket.orderservice.dto.JwtAuthenticationResponse;
-import backend.megamarket.orderservice.dto.RefreshRequestDto;
 import backend.megamarket.orderservice.dto.SignInRequestDto;
 import backend.megamarket.orderservice.dto.SignUpRequestDto;
 import backend.megamarket.orderservice.entity.UserEntity;
 import backend.megamarket.orderservice.entity.enums.Role;
-import backend.megamarket.orderservice.service.AuthenticationServiceImpl;
-import backend.megamarket.orderservice.service.JwtService;
-import backend.megamarket.orderservice.service.UserService;
+import backend.megamarket.orderservice.services.AuthenticationServiceImpl;
+import backend.megamarket.orderservice.services.JwtService;
+import backend.megamarket.orderservice.services.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
@@ -101,11 +100,11 @@ class AuthenticationServiceImplTest {
         assertEquals("signedInToken", response.getToken());
     }
 
-    @Test
+    /*@Test
     void refresh_shouldUpdateUserAndReturnToken() {
         RefreshRequestDto request = new RefreshRequestDto();
         request.setPassword("oldPass");
-        request.setNewPassword("newPass");
+        /*request.setNewPassword("newPass");
         request.setEmail("olduser@example.com");
         request.setNewEmail("newuser@example.com");
         request.setUsername("olduser");
@@ -130,5 +129,5 @@ class AuthenticationServiceImplTest {
         assertEquals("newuser@example.com", capturedNew.getEmail());
         assertEquals("encodedNew", capturedNew.getPassword());
 
-    }
+    }*/
 }

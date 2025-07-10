@@ -1,11 +1,13 @@
-package backend.megamarket.orderservice.service;
+package backend.megamarket.orderservice.services;
 
 import backend.megamarket.orderservice.dto.JwtAuthenticationResponse;
 import backend.megamarket.orderservice.dto.RefreshRequestDto;
 import backend.megamarket.orderservice.dto.SignInRequestDto;
 import backend.megamarket.orderservice.dto.SignUpRequestDto;
 
+import backend.megamarket.orderservice.entity.UserEntity;
 import backend.megamarket.orderservice.mapper.UserMapper;
+import backend.megamarket.orderservice.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.authentication.AuthenticationManager;
@@ -30,6 +32,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     private final PasswordEncoder passwordEncoder;
 
+    private final UserRepository repository;
+
     private final AuthenticationManager authenticationManager;
 
     private final UserMapper userMapper;
@@ -43,12 +47,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public JwtAuthenticationResponse signUp(SignUpRequestDto request) {
 
-        var user = userMapper.signUpToEntity(request);
+        var user = userMapper.signUpToEntity(request, passwordEncoder);
 
         userService.create(user);
 
         var jwt = jwtService.generateToken(user);
-        return new JwtAuthenticationResponse(jwt);
+        return JwtAuthenticationResponse.builder()
+                .token(jwt)
+                .build();
     }
 
     /**
@@ -68,7 +74,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .userDetailsService()
                 .loadUserByUsername(request.getUsername());
         var jwt = jwtService.generateToken(user);
-        return new JwtAuthenticationResponse(jwt);
+        return JwtAuthenticationResponse.builder()
+                .token(jwt)
+                .build();
     }
 
     /**
@@ -79,13 +87,20 @@ public class AuthenticationServiceImpl implements AuthenticationService {
      */
     @Override
     public JwtAuthenticationResponse refresh(RefreshRequestDto request) {
+        var user = userService
+                .userDetailsService()
+                .loadUserByUsername(request.getUsername());
 
-        var user = userMapper.refreshCurrentUser(request);
-        var newUser = userMapper.refreshNewUser(request);
+        if (!(user instanceof UserEntity existingUser)) {
+            throw new RuntimeException("Пользователь не найден");
+        }
 
-        userService.updateUser(user, newUser);
+        if (!passwordEncoder.matches(request.getPassword(), existingUser.getPassword())) {
+            throw new RuntimeException("Неверный логин или пароль");
+        }
 
-        var jwt = jwtService.generateToken(user);
-        return new JwtAuthenticationResponse(jwt);
+        var accessToken = jwtService.generateToken(existingUser);
+        var refreshToken = jwtService.generateRefreshToken(existingUser);
+        return new JwtAuthenticationResponse(accessToken, refreshToken);
     }
 }

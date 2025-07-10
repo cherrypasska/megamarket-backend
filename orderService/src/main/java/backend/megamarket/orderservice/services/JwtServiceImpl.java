@@ -1,4 +1,4 @@
-package backend.megamarket.orderservice.service;
+package backend.megamarket.orderservice.services;
 
 import backend.megamarket.orderservice.entity.UserEntity;
 import io.jsonwebtoken.Claims;
@@ -132,4 +132,20 @@ public class JwtServiceImpl implements JwtService {
         byte[] keyBytes = Decoders.BASE64.decode(jwtSigningKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
+
+    /**
+     * Получение refresh токена
+     *
+     * @return ключ
+     */
+    @Override
+    public String generateRefreshToken(UserDetails userDetails) {
+        return Jwts.builder()
+                .setSubject(userDetails.getUsername())
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 7)) // 7 дней
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
 }

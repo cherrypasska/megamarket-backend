@@ -22,6 +22,6 @@ public class KafkaProducerService {
 
     public void sendOrderConfirmation(OrderEventDto orderEventDto) {
         kafkaTemplate.send(orderConfirmationTopic, orderEventDto);
-        log.info("Order confirmation sent to Kafka for orderId {}", orderEventDto.getOrderId());
+        log.info("Заказ с id {} отправлен в Order Service", orderEventDto.getOrderId());
     }
 }

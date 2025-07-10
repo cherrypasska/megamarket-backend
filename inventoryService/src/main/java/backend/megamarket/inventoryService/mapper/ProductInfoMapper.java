@@ -6,6 +6,7 @@ import client.inventory_service.response.grpc.ProductInfoDto;
 import client.inventory_service.response.grpc.ProductStatus;
 import lombok.RequiredArgsConstructor;
 import org.mapstruct.Mapper;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -14,7 +15,7 @@ import java.util.List;
  * <p>
  * Используется для формирования ответов от InventoryService, отражающих текущее состояние товаров на складе.
  */
-@Mapper
+@Component
 @RequiredArgsConstructor
 public class ProductInfoMapper {
 
@@ -106,5 +107,4 @@ public class ProductInfoMapper {
                 .setStatus(ProductStatus.OK)
                 .build();
     }
-
 }

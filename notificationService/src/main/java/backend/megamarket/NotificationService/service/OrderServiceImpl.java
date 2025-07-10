@@ -1,8 +1,11 @@
 package backend.megamarket.notificationservice.service;
 
+import backend.megamarket.notificationservice.controller.OrderNotFoundException;
+import backend.megamarket.notificationservice.dto.OrdersDto;
 import backend.megamarket.notificationservice.entity.OrderProductsEntity;
 import backend.megamarket.notificationservice.mapper.OrderEntityMapper;
 import backend.megamarket.notificationservice.mapper.OrderProductsEntityMapper;
+import backend.megamarket.notificationservice.mapper.OrderToDtoMapper;
 import backend.megamarket.notificationservice.repository.OrderProductsRepository;
 import backend.megamarket.notificationservice.repository.OrderRepository;
 import backend.megamarket.notificationservice.entity.OrderEntity;
@@ -26,6 +29,8 @@ public class OrderServiceImpl  implements OrderService {
 
     private final OrderRepository orderRepository;
 
+    private final OrderToDtoMapper orderToDtoMapper;
+
     private final OrderProductsEntityMapper orderProductsEntityMapper;
 
     private final OrderEntityMapper orderEntityMapper;
@@ -45,7 +50,7 @@ public class OrderServiceImpl  implements OrderService {
         Long orderId = clientDto.getOrderId();
         Long userId = clientDto.getUserId();
 
-        log.info("Получен заказ на сохранение: orderId={}, userId={}, товаров={}",
+        log.info("[ID:{}] Получен заказ на сохранение: userId={}, товаров={}",
                 orderId, userId, clientDto.getProducts().size());
 
         OrderEntity orderEntity = orderEntityMapper.orderEntityMapping(clientDto);
@@ -53,18 +58,18 @@ public class OrderServiceImpl  implements OrderService {
             List<OrderProductsEntity> orders = clientDto.getProducts().stream().map(p -> {
                 OrderProductsEntity newOrder = orderProductsEntityMapper.OrderProductsEntityMapping(clientDto, p);
                 orderEntity.setTotalPrice(orderEntity.getTotalPrice() + p.getQuantity() * (p.getPrice() - p.getPrice() * p.getSale()));
-                log.debug("Добавлен продукт в заказ: productId={}, quantity={}, price={}, sale={}",
-                        p.getProductId(), p.getQuantity(), p.getPrice(), p.getSale());
+                log.debug("[ID{}] Добавлен продукт в заказ: productId={}, quantity={}, price={}, sale={}",
+                        orderId, p.getProductId(), p.getQuantity(), p.getPrice(), p.getSale());
                 return newOrder;
             }).toList();
             orderRepository.save(orderEntity);
             orderProductsRepository.saveAll(orders);
-            log.info("Заказ успешно сохранён: orderId={}, userId={}, итого сумма={}",
+            log.info("[ID:{}] Заказ успешно сохранён: userId={}, итого сумма={}",
                     orderId, userId, orderEntity.getTotalPrice());
             return orders;
         }
         catch (Exception e) {
-            log.error("Ошибка при сохранении заказа orderId={}, userId={}: {}", orderId, userId, e.getMessage(), e);
+            log.error("[ID:{}] Ошибка при сохранении заказа userId={}: {}", orderId, userId, e.getMessage(), e);
             return null;
         }
     }
@@ -75,10 +80,12 @@ public class OrderServiceImpl  implements OrderService {
      * @return список всех заказов {@link OrderEntity}
      */
     @Override
-    public List<OrderEntity> getAllProducts() {
+    public List<OrdersDto> getAllProducts() {
         List<OrderEntity> allOrders = orderRepository.findAll();
-        log.info("Получены все заказы: общее количество={}", allOrders.size());
-        return orderRepository.findAll();
+        return allOrders.stream()
+                .map(order -> orderToDtoMapper.toDto(order,
+                        orderProductsRepository.findByOrderId(order.getOrderId())))
+                .toList();
     }
 
     /**
@@ -88,8 +95,15 @@ public class OrderServiceImpl  implements OrderService {
      * @return список заказов с указанным идентификатором {@link OrderEntity}
      */
     @Override
-    public List<OrderEntity> getOrdersByOrderId(Long orderId) {
-        return orderRepository.findByOrderId(orderId);
+    public List<OrdersDto> getOrdersByOrderId(Long orderId) {
+        List<OrderEntity> result = orderRepository.findByOrderId(orderId);
+        if (result.isEmpty()) {
+            throw new OrderNotFoundException(orderId);
+        }
+        return result.stream()
+                .map(order -> orderToDtoMapper.toDto(order,
+                        orderProductsRepository.findByOrderId(order.getOrderId())))
+                .toList();
     }
 
     /**
@@ -99,7 +113,11 @@ public class OrderServiceImpl  implements OrderService {
      * @return список заказов, принадлежащих указанному пользователю {@link OrderEntity}
      */
     @Override
-    public List<OrderEntity> getOrdersByUserId(Long userId) {
-        return orderRepository.findByUserId(userId);
+    public List<OrdersDto> getOrdersByUserId(Long userId) {
+        List<OrderEntity> result = orderRepository.findByUserId(userId);
+        return result.stream()
+                .map(order -> orderToDtoMapper.toDto(order,
+                        orderProductsRepository.findByOrderId(order.getOrderId())))
+                .toList();
     }
 }

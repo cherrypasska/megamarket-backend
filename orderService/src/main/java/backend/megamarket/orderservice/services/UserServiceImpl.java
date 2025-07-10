@@ -1,13 +1,17 @@
-package backend.megamarket.orderservice.service;
+package backend.megamarket.orderservice.services;
 
+import backend.megamarket.orderservice.controller.UserNotFoundException;
 import backend.megamarket.orderservice.mapper.UserMapper;
 import backend.megamarket.orderservice.repository.UserRepository;
 import backend.megamarket.orderservice.entity.UserEntity;
 import backend.megamarket.orderservice.entity.enums.Role;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,6 +23,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository repository;
 
     private final UserMapper mapper;
+
 
     /**
      * Сохранение пользователя
@@ -54,10 +59,9 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public void updateUser(UserEntity user, UserEntity newUser) {
-        //Логика для проверки, что пользователь изменяет СВОи логин и пароль.
-        if (repository.existsByEmailAndPassword(user.getEmail(), user.getPassword())) {
-            save(mapper.refreshUser(user, newUser));
-        } else throw new RuntimeException("Неверный логин или пароль");
+        UserEntity existingUser = repository.findByEmail(user.getEmail())
+                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+        save(mapper.refreshUser(existingUser, newUser));
     }
 
     /**
@@ -124,7 +128,8 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserEntity getUserById(Long id) {
-        return repository.findById(id).orElse(null);
+        return repository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
     }
 
     /**
@@ -132,7 +137,8 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserEntity updateUserById(Long id, UserEntity updatedUser) {
-        UserEntity existing = getUserById(id);
+        UserEntity existing = repository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
 
         if (!existing.getEmail().equals(updatedUser.getEmail())
                 && repository.existsByEmail(updatedUser.getEmail())) {
@@ -148,7 +154,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUser(Long id) {
         if (!repository.existsById(id)) {
-            throw new RuntimeException("Пользователь не найден");
+            throw new UserNotFoundException(id);
         }
         repository.deleteById(id);
     }

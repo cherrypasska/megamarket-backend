@@ -7,6 +7,7 @@ import backend.megamarket.orderservice.entity.enums.Role;
 import lombok.RequiredArgsConstructor;
 import org.mapstruct.Mapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
 
 /**
  * Маппер для преобразования DTO, связанных с пользователем, в сущность {@link UserEntity}.
@@ -14,11 +15,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  * <p>
  * Используется при регистрации, обновлении и валидации учетных данных пользователей.
  */
-@Mapper
+@Component
 @RequiredArgsConstructor
 public class UserMapper {
-
-    private final PasswordEncoder passwordEncoder;
 
     /**
      * Преобразует DTO регистрации {@link SignUpRequestDto} в сущность {@link UserEntity}.
@@ -26,48 +25,14 @@ public class UserMapper {
      * @param request объект DTO с данными регистрации
      * @return новая сущность пользователя
      */
-    public UserEntity signUpToEntity(SignUpRequestDto request){
+    public UserEntity signUpToEntity(SignUpRequestDto request, PasswordEncoder passwordEncoder) {
         var user = UserEntity.builder()
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .email(request.getEmail())
-                .build();
-        return user;
-    }
-
-    /**
-     * Создаёт объект {@link UserEntity}, представляющий текущего пользователя,
-     * из данных запроса на обновление {@link RefreshRequestDto}.
-     * Используется для поиска и сверки старых данных.
-     *
-     * @param request DTO с текущими данными пользователя
-     * @return сущность текущего пользователя
-     */
-    public UserEntity refreshCurrentUser(RefreshRequestDto request) {
-        var user = UserEntity.builder()
-                .username(request.getUsername())
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.ROLE_USER)
                 .build();
         return user;
-    }
-
-    /**
-     * Создаёт объект {@link UserEntity}, представляющий обновлённого пользователя,
-     * из новых данных, переданных в {@link RefreshRequestDto}.
-     *
-     * @param request DTO с новыми данными пользователя
-     * @return новая сущность пользователя
-     */
-    public UserEntity refreshNewUser(RefreshRequestDto request) {
-        var newUser = UserEntity.builder()
-                .username(request.getNewUsername())
-                .email(request.getNewEmail())
-                .password(passwordEncoder.encode(request.getNewPassword()))
-                .role(Role.ROLE_USER)
-                .build();
-        return newUser;
     }
 
     /**

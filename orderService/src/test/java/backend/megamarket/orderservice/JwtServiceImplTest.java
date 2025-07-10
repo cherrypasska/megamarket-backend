@@ -2,7 +2,7 @@ package backend.megamarket.orderservice;
 
 import backend.megamarket.orderservice.entity.UserEntity;
 import backend.megamarket.orderservice.entity.enums.Role;
-import backend.megamarket.orderservice.service.JwtServiceImpl;
+import backend.megamarket.orderservice.services.JwtServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;

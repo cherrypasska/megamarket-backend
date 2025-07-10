@@ -1,6 +1,8 @@
 package backend.megamarket.inventoryservice;
 
+import backend.megamarket.inventoryservice.dto.ProductDto;
 import backend.megamarket.inventoryservice.entity.ProductEntity;
+import backend.megamarket.inventoryservice.mapper.ProductDtoToEntityMapper;
 import backend.megamarket.inventoryservice.repository.ProductRepository;
 import backend.megamarket.inventoryservice.service.ProductServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +24,8 @@ class ProductServiceTest {
 
     private ProductEntity product1;
     private ProductEntity product2;
+
+    private ProductDtoToEntityMapper productDtoToEntityMapper;
 
     @BeforeEach
     void setUp() {
@@ -73,7 +77,7 @@ class ProductServiceTest {
 
     @Test
     void addProduct_WhenProductExists_ShouldIncreaseQuantity() {
-        ProductEntity newProduct = new ProductEntity();
+        ProductDto newProduct = new ProductDto();
         newProduct.setName("Product1");
         newProduct.setQuantity(5L);
 
@@ -89,18 +93,21 @@ class ProductServiceTest {
 
     @Test
     void addProduct_WhenProductDoesNotExist_ShouldSaveNewProduct() {
-        ProductEntity newProduct = new ProductEntity();
+        ProductDto newProduct = new ProductDto();
         newProduct.setName("NewProduct");
         newProduct.setQuantity(7L);
 
+        ProductEntity product = new ProductEntity();
+        product = productDtoToEntityMapper.map(newProduct);
+
         when(productRepository.existsByName("NewProduct")).thenReturn(false);
-        when(productRepository.save(newProduct)).thenReturn(newProduct);
+        when(productRepository.save(product)).thenReturn(product);
 
         ProductEntity saved = productService.addProduct(newProduct);
 
         assertEquals("NewProduct", saved.getName());
         assertEquals(7, saved.getQuantity());
-        verify(productRepository).save(newProduct);
+        verify(productRepository).save(product);
     }
 
     @Test

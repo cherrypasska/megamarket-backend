@@ -4,6 +4,7 @@ import client.inventory_service.response.grpc.InventoryResponseDto;
 import client.inventory_service.response.grpc.ProductInfoDto;
 import lombok.RequiredArgsConstructor;
 import org.mapstruct.Mapper;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -13,7 +14,7 @@ import java.util.List;
  * Используется для формирования ответа после выполнения заказа,
  * в который включаются все позиции товаров с их актуальными статусами.
  */
-@Mapper
+@Component
 @RequiredArgsConstructor
 public class InventoryResponseMapper {
 

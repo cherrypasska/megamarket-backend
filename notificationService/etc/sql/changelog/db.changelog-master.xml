@@ -2,71 +2,127 @@
 <databaseChangeLog
         xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="
-        http://www.liquibase.org/xml/ns/dbchangelog
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
 
-    <!-- Создание таблицы orders -->
-    <changeSet id="1-create-orders-table" author="author">
+    <!-- Создание последовательности для orders -->
+    <changeSet id="1-create-order-seq" author="author">
         <preConditions onFail="MARK_RAN">
             <not>
-                <tableExists tableName="orders"/>
+                <sequenceExists sequenceName="order_id_seq"/>
             </not>
         </preConditions>
+        <createSequence sequenceName="order_id_seq" startValue="1" incrementBy="1"/>
+    </changeSet>
 
+    <!-- Создание таблицы orders -->
+    <changeSet id="2-create-orders-table" author="author">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <not>
+                    <tableExists tableName="orders"/>
+                </not>
+                <sequenceExists sequenceName="order_id_seq"/>
+            </and>
+        </preConditions>
         <createTable tableName="orders">
-            <column name="order_id" type="BIGINT">
+            <column name="order_id" type="BIGINT" defaultValueSequenceNext="order_id_seq">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="user_id" type="BIGINT" defaultValueNumeric="0">
+            <column name="user_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
-            <column name="total_price" type="DOUBLE PRECISION" defaultValueNumeric="0.0">
+            <column name="total_price" type="DOUBLE PRECISION" defaultValue="0.0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(50)" defaultValue="'CREATED'">
                 <constraints nullable="false"/>
             </column>
         </createTable>
     </changeSet>
 
+    <!-- Создание последовательности для order_products -->
+    <changeSet id="3-create-order-product-seq" author="author">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="order_product_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="order_product_id_seq" startValue="1" incrementBy="1"/>
+    </changeSet>
+
     <!-- Создание таблицы order_products -->
-    <changeSet id="2-create-order-products-table" author="author">
+    <changeSet id="4-create-order-products-table" author="author">
         <preConditions onFail="MARK_RAN">
             <and>
                 <not>
                     <tableExists tableName="order_products"/>
                 </not>
-                <foreignKeyConstraintExists foreignKeyName="fk_order_products_orders" />
+                <tableExists tableName="orders"/>
+                <sequenceExists sequenceName="order_product_id_seq"/>
             </and>
         </preConditions>
-
         <createTable tableName="order_products">
-            <column name="id" type="BIGINT">
+            <column name="id" type="BIGINT" defaultValueSequenceNext="order_product_id_seq">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="order_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
-            <column name="price" type="DOUBLE PRECISION" defaultValueNumeric="0.0">
+            <column name="product_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
-            <column name="product_id" type="BIGINT" defaultValueNumeric="0">
+            <column name="price" type="DOUBLE PRECISION" defaultValue="0.0">
                 <constraints nullable="false"/>
             </column>
-            <column name="quantity" type="BIGINT" defaultValueNumeric="0">
+            <column name="quantity" type="BIGINT" defaultValue="1">
                 <constraints nullable="false"/>
             </column>
-            <column name="sale" type="DOUBLE PRECISION" defaultValueNumeric="0.0">
+            <column name="sale" type="DOUBLE PRECISION" defaultValue="0.0">
                 <constraints nullable="false"/>
             </column>
         </createTable>
+    </changeSet>
 
+    <!-- Добавление внешнего ключа -->
+    <changeSet id="5-add-order-products-fk" author="author">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <not>
+                    <foreignKeyConstraintExists foreignKeyName="fk_order_products_orders"/>
+                </not>
+                <tableExists tableName="orders"/>
+                <tableExists tableName="order_products"/>
+            </and>
+        </preConditions>
         <addForeignKeyConstraint
                 baseTableName="order_products"
                 baseColumnNames="order_id"
                 referencedTableName="orders"
                 referencedColumnNames="order_id"
+                constraintName="fk_order_products_orders"
                 onDelete="CASCADE"
-                onUpdate="CASCADE"
-                constraintName="fk_order_products_orders"/>
+                onUpdate="CASCADE"/>
+    </changeSet>
+
+    <!-- Создание индексов -->
+    <changeSet id="6-create-indexes" author="author">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="orders"/>
+            <tableExists tableName="order_products"/>
+        </preConditions>
+        <createIndex tableName="orders" indexName="idx_orders_user_id">
+            <column name="user_id"/>
+        </createIndex>
+        <createIndex tableName="order_products" indexName="idx_order_products_order_id">
+            <column name="order_id"/>
+        </createIndex>
+        <createIndex tableName="order_products" indexName="idx_order_products_product_id">
+            <column name="product_id"/>
+        </createIndex>
     </changeSet>
 
 </databaseChangeLog>

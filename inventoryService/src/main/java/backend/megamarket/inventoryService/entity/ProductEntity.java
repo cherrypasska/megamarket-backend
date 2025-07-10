@@ -42,5 +42,5 @@ public class ProductEntity {
      * Скидка на продукт.
      */
     @Column
-    private Float sale;
+    private Double sale;
 }

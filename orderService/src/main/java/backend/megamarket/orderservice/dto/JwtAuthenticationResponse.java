@@ -1,10 +1,7 @@
 package backend.megamarket.orderservice.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 /**
  * DTO для ответа аутентификации, содержащий JWT токен доступа.
@@ -22,4 +19,10 @@ public class JwtAuthenticationResponse {
      */
     @Schema(description = "Токен доступа", example = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTYyMjUwNj...")
     private String token;
+
+    /**
+     * refresh JWT токен доступа, который клиент должен использовать для авторизации последующих запросов.
+     */
+    @Schema(description = "Токен доступа", example = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTYyMjUwNj...")
+    private String refreshToken;
 }

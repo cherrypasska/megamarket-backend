@@ -1,9 +1,6 @@
-package backend.megamarket.orderservice.service;
+package backend.megamarket.orderservice.services;
 
 import backend.megamarket.orderservice.dto.OrderEventDto;
-import backend.megamarket.orderservice.dto.OrderSendEventDto;
-
-import java.util.List;
 
 public interface KafkaMessagingService {
 

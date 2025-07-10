@@ -1,6 +1,7 @@
-package backend.megamarket.orderservice.service;
+package backend.megamarket.orderservice.services;
 
 import backend.megamarket.orderservice.controller.InsufficientQuantityException;
+import backend.megamarket.orderservice.controller.NotificationException;
 import backend.megamarket.orderservice.dto.OrderItemDto;
 import backend.megamarket.orderservice.mapper.InventoryRequestMapper;
 import backend.megamarket.orderservice.mapper.OrderToDtoMapper;
@@ -9,6 +10,7 @@ import backend.megamarket.orderservice.repository.UserRepository;
 import client.inventory.response.grpc.*;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import org.slf4j.MDC;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,8 +48,6 @@ public class OrderServiceImpl implements OrderService {
     @Value("${grpc.inventory.port}")
     private int inventoryPort;
 
-    Long orderId = System.currentTimeMillis();
-
     /**
      * Проверяет наличие товаров в заказе на складе.
      * Если заказ пустой — выбрасывает {@link EmptyOrderException}.
@@ -60,8 +60,12 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     public void checkOrder(List<OrderItemDto> items) {
+        Long orderId = System.currentTimeMillis();
+        log.info("[ID:" + orderId +"] формирование заказа" + '\n' + items);
+        MDC.put("orderId", String.valueOf(orderId));
+
         if (items.isEmpty()) {
-            log.warn("Попытка оформить пустой заказ");
+            log.warn("[ID:" + orderId +"] Попытка оформить пустой заказ");
             throw new EmptyOrderException("Заказ не может быть пустым!");
         }
 
@@ -69,52 +73,53 @@ public class OrderServiceImpl implements OrderService {
                 .forAddress("localhost", inventoryPort)
                 .usePlaintext()
                 .build();
+
         try {
-            InventoryServiceGrpc.InventoryServiceBlockingStub stub = InventoryServiceGrpc.newBlockingStub(channel);
+            var stub = InventoryServiceGrpc.newBlockingStub(channel);
 
             List<ProductQueryDto> productQueries = productQueryMapper.map(items);
-
             InventoryRequestDto request = inventoryRequestMapper.map(productQueries, orderId);
 
-            log.info("Отправка запроса на проверку склада по заказу orderId={}, товаров={}", orderId, items.size());
+            log.info("[ID:" + orderId +"] Отправка заказа в Inventory Service");
 
             var response = stub.checkInventory(request);
 
-            log.info("Получен ответ от InventoryService: {}", response);
+            log.info("[ID:" + orderId +"] Наличие проверено в Inventory Service и прибыло в OrderService");
 
-            List<ProductInfoDto> order = response.getItemsList();
             Long userId = userRepository.findByUsername(
                     SecurityContextHolder.getContext().getAuthentication().getName()
             ).orElseThrow().getId();
+            MDC.put("userId", String.valueOf(userId));
 
-            List<ProductInfoDto> unavailableItems = order.stream()
+            var unavailableItems = response.getItemsList().stream()
                     .filter(item -> item.getStatus() == INSUFFICIENT_QUANTITY)
-                    .collect(Collectors.toList());
+                    .toList();
 
             if (!unavailableItems.isEmpty()) {
-                log.warn("Недостаток товаров для заказа orderId={} от userId={}", orderId, userId);
-                unavailableItems.forEach(item ->
-                        log.warn("📦 Недостаточно товара: productId={}, запрошено={}, статус={}",
-                                item.getProductId(), item.getAvailableQuantity(), item.getStatus())
-                );
                 String errorMessage = unavailableItems.stream()
-                        .map(item -> "Ошибка по заказу " + orderId + "\n" + "От user " + userId + "Товар ID: " + item.getProductId() +
-                                " - недостаточно на складе")
-                        .collect(Collectors.joining("\n"));
-
+                        .map(item -> "Товар ID: " + item.getProductId() + " - недостаточно на складе")
+                        .collect(Collectors.joining("; "));
+                log.error("[ID" + orderId +"] Недостаточно товаров на складе");
                 throw new InsufficientQuantityException(errorMessage);
             }
 
-            kafkaMessagingService.sendOrder(
-                    orderToDtoMapper.convertToDTO(response, userId, items)
-            );
-            log.info("Заказ успешно отправлен в Kafka: orderId={}, userId={}", orderId, userId);
-        } catch (Exception e) {
-            log.error("Ошибка при проверке и отправке заказа orderId={}: {}", orderId, e.getMessage(), e);
+            try {
+                kafkaMessagingService.sendOrder(
+                        orderToDtoMapper.convertToDTO(response, userId, items)
+                );
+                log.info("[ID: {} ] Заказ отправлен в Kafka: userId={}",  orderId, userId);
+            } catch (Exception e) {
+                throw new NotificationException("[ID:" + orderId + "] Ошибка при отправке заказа в Kafka", e);
+            }
+
+        } catch (InsufficientQuantityException | NotificationException e) {
             throw e;
-        }finally {
+        } catch (Exception e) {
+            log.error("[ID:" + orderId + "] Неизвестная ошибка: {}", e.getMessage(), e);
+            throw new RuntimeException("[ID:" + orderId + "] Внутренняя ошибка сервиса", e);
+        } finally {
             channel.shutdown();
-            log.debug("gRPC-канал закрыт: orderId={}", orderId);
+            log.debug("gRPC-канал закрыт");
         }
     }
 }

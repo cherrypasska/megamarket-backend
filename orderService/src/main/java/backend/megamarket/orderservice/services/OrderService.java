@@ -1,4 +1,4 @@
-package backend.megamarket.orderservice.service;
+package backend.megamarket.orderservice.services;
 
 import backend.megamarket.orderservice.dto.OrderItemDto;
 

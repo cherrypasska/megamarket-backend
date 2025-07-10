@@ -4,6 +4,7 @@ import backend.megamarket.orderservice.dto.OrderItemDto;
 import client.inventory.response.grpc.ProductQueryDto;
 import lombok.RequiredArgsConstructor;
 import org.mapstruct.Mapper;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -13,7 +14,7 @@ import java.util.List;
  * Преобразованные объекты {@code ProductQueryDto} применяются при проверке остатков
  * или списании товаров в методах {@code checkInventory()} и {@code addOrder()}.
  */
-@Mapper
+@Component
 @RequiredArgsConstructor
 public class ProductQueryMapper {
 

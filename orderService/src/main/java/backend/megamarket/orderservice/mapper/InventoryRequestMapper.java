@@ -4,6 +4,7 @@ import client.inventory.response.grpc.InventoryRequestDto;
 import client.inventory.response.grpc.ProductQueryDto;
 import lombok.RequiredArgsConstructor;
 import org.mapstruct.Mapper;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -13,7 +14,7 @@ import java.util.List;
  * <p>
  * Предназначен для формирования запроса на проверку или изменение остатков товаров на складе.
  */
-@Mapper
+@Component
 @RequiredArgsConstructor
 public class InventoryRequestMapper {
 

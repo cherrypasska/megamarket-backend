@@ -40,7 +40,7 @@ public class KafkaMessagingServiceImpl {
     @Transactional
     @KafkaListener(topics = topicCreateOrder, groupId = kafkaConsumerGroupId)
     public OrderEventDto createOrder(OrderEventDto orderEvent) {
-        log.info("Message consumed {}", orderEvent);
+        log.info("заказ {} прибыл в notification service", orderEvent);
         orderService.save(orderEvent);
         kafkaProducer.sendOrderConfirmation(orderEvent);
 
